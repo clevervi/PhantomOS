@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PhantomOS.ViewModels"
+        xmlns:models="using:PhantomOS.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        mc:Ignorable="d" d:DesignWidth="950" d:DesignHeight="650"
         x:Class="PhantomOS.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="PhantomOS"
@@ -47,34 +48,85 @@
                 <Grid RowDefinitions="Auto,*,Auto">
                     <TextBlock Grid.Row="0" Text="Panel de Optimización" Classes="Header" />
                     
-                    <ScrollViewer Grid.Row="1">
+                    <ScrollViewer Grid.Row="1" Margin="0,10">
                         <StackPanel Spacing="20">
-                            <TextBlock Text="Bienvenido a PhantomOS. Selecciona un perfil o personaliza tus ajustes." 
-                                       TextWrapping="Wrap" Opacity="0.7" />
-                            
-                            <!-- Profile Selection -->
-                            <Grid ColumnDefinitions="*,*" Margin="0,10">
-                                <Button Grid.Column="0" Margin="0,0,5,0" HorizontalAlignment="Stretch" Padding="20" Background="#33FFFFFF">
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="🎮" FontSize="30" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Gaming Profile" FontWeight="Bold"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Grid.Column="1" Margin="5,0,0,0" HorizontalAlignment="Stretch" Padding="20" Background="#33FFFFFF">
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="🛡️" FontSize="30" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Privacy Profile" FontWeight="Bold"/>
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
+                            <!-- Profiles Section -->
+                            <TextBlock Text="Perfiles Recomendados" FontWeight="SemiBold" Opacity="0.8"/>
+                            <ItemsControl ItemsSource="{Binding Profiles}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="2" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Margin="5" HorizontalAlignment="Stretch" Padding="15" 
+                                                Background="#22FFFFFF" 
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectProfileCommand}"
+                                                CommandParameter="{Binding}">
+                                            <StackPanel HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding Icon}" FontSize="24" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Separator Background="#22FFFFFF" Height="1" Margin="0,10"/>
+
+                            <!-- Atomic Tweaks List -->
+                            <TextBlock Text="Ajustes Atómicos" FontWeight="SemiBold" Opacity="0.8"/>
+                            <ItemsControl ItemsSource="{Binding Tweaks}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:AtomicTweak">
+                                        <Border Background="#11FFFFFF" CornerRadius="8" Padding="12" Margin="0,4">
+                                            <DockPanel>
+                                                <CheckBox IsChecked="{Binding IsApplied}" VerticalAlignment="Center" Margin="0,0,15,0" />
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        <Border Background="#44000000" CornerRadius="4" Padding="6,2">
+                                                            <TextBlock Text="{Binding Category}" FontSize="10" Opacity="0.7"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Description}" FontSize="12" Opacity="0.6" Margin="0,2,0,0"/>
+                                                </StackPanel>
+                                                
+                                                <!-- Education Icon (Tooltip) -->
+                                                <Button DockPanel.Dock="Right" Background="Transparent" Padding="5" HorizontalAlignment="Right">
+                                                    <TextBlock Text="ⓘ" Opacity="0.5" />
+                                                    <ToolTip.Tip>
+                                                        <StackPanel Width="300" Spacing="10">
+                                                            <TextBlock Text="Educación Técnica" FontWeight="Bold" Foreground="#0078D4"/>
+                                                            <StackPanel>
+                                                                <TextBlock Text="¿Por qué activarlo?" FontWeight="SemiBold" FontSize="12"/>
+                                                                <TextBlock Text="{Binding WhyActivate}" TextWrapping="Wrap" FontSize="12" Opacity="0.8"/>
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock Text="¿Por qué no activarlo?" FontWeight="SemiBold" FontSize="12"/>
+                                                                <TextBlock Text="{Binding WhyDeactivate}" TextWrapping="Wrap" FontSize="12" Opacity="0.8"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </ToolTip.Tip>
+                                                </Button>
+                                            </DockPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                     </ScrollViewer>
 
+                    <!-- Status and Apply -->
                     <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="#22FFFFFF" Padding="0,15,0,0">
                         <DockPanel>
-                            <TextBlock Text="{Binding StatusMessage}" Opacity="0.5" VerticalAlignment="Center" />
-                            <Button Content="Aplicar Cambios" HorizontalAlignment="Right" 
-                                    Background="#0078D4" Foreground="White" Padding="15,8" CornerRadius="5"/>
+                            <TextBlock Text="{Binding StatusMessage}" Opacity="0.5" VerticalAlignment="Center" 
+                                       TextWrapping="Wrap" MaxWidth="500"/>
+                            <Button Content="Aplicar Optimizaciones" HorizontalAlignment="Right" 
+                                    Command="{Binding ApplyCommand}"
+                                    Classes="Primary"
+                                    Background="#0078D4" Foreground="White" Padding="20,10" CornerRadius="6"/>
                         </DockPanel>
                     </Border>
                 </Grid>

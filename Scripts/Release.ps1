@@ -36,7 +36,7 @@ if ($LASTEXITCODE -eq 0) {
     Compress-Archive -Path "$outputDir\$runtime\*" -DestinationPath $zipPath
     
     Write-Host "🎉 Proceso de Release completado con éxito." -ForegroundColor Green
-    Write-Host "📂 Los archivos se encuentran en: (Get-Location)\artifacts"
+    Write-Host "📂 Los archivos se encuentran en: $((Get-Location).Path)\artifacts"
 } else {
     Write-Error "❌ Error durante la publicación."
 }
