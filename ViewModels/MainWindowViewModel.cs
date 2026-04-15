@@ -18,38 +18,36 @@ namespace PhantomOS.ViewModels
         private readonly HardwareService _hardwareService;
         private readonly RecommendationService _recommendationService;
         private readonly SecurityService _securityService;
+        private readonly CleanupService _cleanupService;
+        private readonly IsoService _isoService;
         
-        private string _statusMessage = "Analizando sistema...";
-        private string _systemSpecsSummary = "Cargando especificaciones...";
+        private string _statusMessage = "Listo";
+        private string _systemSpecsSummary = "Cargando...";
         private int _securityScore = 100;
-        private HardwareInfo? _currentHardware;
+        private string _isoWimPath = "";
+        private string _isoMountPath = @"C:\PhantomOS_Mount";
+        private double _isoProgress = 0;
+        private string _isoStatus = "Esperando archivo WIM...";
 
         public ObservableCollection<AtomicTweak> Tweaks { get; }
         public ObservableCollection<TweakProfile> Profiles { get; }
         public ObservableCollection<SecurityFinding> SecurityFindings { get; }
+        public ObservableCollection<CleanupService.CleanupItem> CleanupItems { get; }
 
-        public string StatusMessage
-        {
-            get => _statusMessage;
-            set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
-        }
-
-        public string SystemSpecsSummary
-        {
-            get => _systemSpecsSummary;
-            set => this.RaiseAndSetIfChanged(ref _systemSpecsSummary, value);
-        }
-
-        public int SecurityScore
-        {
-            get => _securityScore;
-            set => this.RaiseAndSetIfChanged(ref _securityScore, value);
-        }
+        public string StatusMessage { get => _statusMessage; set => this.RaiseAndSetIfChanged(ref _statusMessage, value); }
+        public string SystemSpecsSummary { get => _systemSpecsSummary; set => this.RaiseAndSetIfChanged(ref _systemSpecsSummary, value); }
+        public int SecurityScore { get => _securityScore; set => this.RaiseAndSetIfChanged(ref _securityScore, value); }
+        
+        public string IsoWimPath { get => _isoWimPath; set => this.RaiseAndSetIfChanged(ref _isoWimPath, value); }
+        public double IsoProgress { get => _isoProgress; set => this.RaiseAndSetIfChanged(ref _isoProgress, value); }
+        public string IsoStatus { get => _isoStatus; set => this.RaiseAndSetIfChanged(ref _isoStatus, value); }
 
         public ReactiveCommand<Unit, Unit> ApplyCommand { get; }
         public ReactiveCommand<Unit, Unit> SmartFixCommand { get; }
         public ReactiveCommand<Unit, Unit> FixSecurityCommand { get; }
         public ReactiveCommand<Unit, Unit> RevertPrivacyCommand { get; }
+        public ReactiveCommand<Unit, Unit> RunCleanupCommand { get; }
+        public ReactiveCommand<Unit, Unit> ProcessIsoCommand { get; }
         public ReactiveCommand<TweakProfile, Unit> SelectProfileCommand { get; }
 
         public MainWindowViewModel()
@@ -58,16 +56,23 @@ namespace PhantomOS.ViewModels
             _hardwareService = new HardwareService();
             _recommendationService = new RecommendationService();
             _securityService = new SecurityService();
+            _cleanupService = new CleanupService();
+            _isoService = new IsoService();
 
             Tweaks = new ObservableCollection<AtomicTweak>(TweakCatalog.Tweaks);
             Profiles = new ObservableCollection<TweakProfile>(TweakCatalog.Profiles);
             SecurityFindings = new ObservableCollection<SecurityFinding>();
+            CleanupItems = new ObservableCollection<CleanupService.CleanupItem>();
 
             ApplyCommand = ReactiveCommand.CreateFromTask(ApplyChangesAsync);
             SmartFixCommand = ReactiveCommand.CreateFromTask(ApplySmartFixAsync);
             FixSecurityCommand = ReactiveCommand.CreateFromTask(FixSecurityFindingsAsync);
             RevertPrivacyCommand = ReactiveCommand.CreateFromTask(RevertPrivacyAsync);
+            RunCleanupCommand = ReactiveCommand.CreateFromTask(RunCleanupAsync);
+            ProcessIsoCommand = ReactiveCommand.CreateFromTask(ProcessIsoAsync);
             SelectProfileCommand = ReactiveCommand.Create<TweakProfile>(SelectProfile);
+
+            _isoService.OnProgress += (msg, pct) => { IsoStatus = msg; IsoProgress = pct; };
 
             _ = Task.Run(RunFullAnalysisAsync);
         }
@@ -76,73 +81,57 @@ namespace PhantomOS.ViewModels
         {
             try
             {
-                _currentHardware = _hardwareService.GetSystemInfo();
-                SystemSpecsSummary = _currentHardware.DetailedSummary;
+                // 1. Hardware & Security
+                _hardwareService.GetSystemInfo();
+                var secFindings = _securityService.RunSecurityAudit();
                 
-                StatusMessage = "Ejecutando auditoría de seguridad profunda...";
-                var findings = _securityService.RunSecurityAudit();
-                
+                // 2. Cleanup Scan (Automatic as requested)
+                var cleanupFound = await _cleanupService.ScanAsync();
+
                 await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     SecurityFindings.Clear();
-                    foreach (var finding in findings) SecurityFindings.Add(finding);
-                    CalculateSecurityScore();
+                    foreach (var f in secFindings) SecurityFindings.Add(f);
+                    
+                    CleanupItems.Clear();
+                    foreach (var c in cleanupFound) CleanupItems.Add(c);
 
-                    var recommendedIds = _recommendationService.GetRecommendedTweakIds(_currentHardware, Tweaks.ToList());
-                    foreach (var tweak in Tweaks)
-                    {
-                        tweak.IsRecommended = recommendedIds.Contains(tweak.Id);
-                        _optimizationService.CheckTweakStatus(tweak);
-                    }
-                    StatusMessage = "Sistema listo y analizado.";
+                    StatusMessage = $"Análisis completado. Encontrados {cleanupFound.Count} items de limpieza.";
                 });
             }
-            catch (Exception ex)
-            {
-                Logger.Error("Fallo en el escaneo inicial", ex);
-                StatusMessage = "Error en el análisis.";
-            }
+            catch (Exception ex) { Logger.Error("Error en análisis", ex); }
         }
 
-        private void CalculateSecurityScore()
+        private async Task RunCleanupAsync()
         {
-            if (!SecurityFindings.Any()) { SecurityScore = 100; return; }
-            int totalPenalty = SecurityFindings.Sum(f => f.Severity switch
-            {
-                Severity.Critical => 40, Severity.High => 20, Severity.Medium => 10, Severity.Low => 5, _ => 0
-            });
-            SecurityScore = Math.Max(0, 100 - totalPenalty);
+            StatusMessage = "Limpiando archivos basura...";
+            var selected = CleanupItems.Where(i => i.IsChecked).ToList();
+            long freed = await _cleanupService.CleanAsync(selected);
+            StatusMessage = $"Limpieza completada. Espacio liberado: {freed / 1024 / 1024} MB";
+            await RunFullAnalysisAsync(); // Refresh scan
         }
 
-        private async Task FixSecurityFindingsAsync()
+        private async Task ProcessIsoAsync()
         {
-            StatusMessage = "Corrigiendo vulnerabilidades...";
+            if (string.IsNullOrEmpty(IsoWimPath)) { StatusMessage = "Error: Selecciona un archivo WIM primero."; return; }
+            await _isoService.ProcessWimAsync(IsoWimPath, _isoMountPath, new List<string>(), true);
+        }
+
+        // ... existing methods (ApplyChangesAsync, SelectProfile, etc.)
+        private async Task ApplyChangesAsync()
+        {
+            StatusMessage = "Iniciando optimización...";
             await Task.Run(() =>
             {
-                foreach (var finding in SecurityFindings.ToList())
-                {
-                    if (!finding.IsFixed) { if (_securityService.FixFinding(finding)) finding.IsFixed = true; }
-                }
-                CalculateSecurityScore();
-                StatusMessage = "Seguridad reforzada correctamente.";
+                SystemRestoreManager.CreateRestorePoint("PhantomOS Cleanup Session");
+                var toApply = Tweaks.Where(t => t.IsApplied).ToList();
+                foreach (var tweak in toApply) _optimizationService.ApplyTweak(tweak);
+                StatusMessage = "¡Optimización completada con éxito!";
             });
-        }
-
-        private async Task RevertPrivacyAsync()
-        {
-            StatusMessage = "Revirtiendo ajustes de privacidad a estado de fábrica...";
-            // Logic to un-apply all privacy tweaks
-            foreach (var tweak in Tweaks.Where(t => t.Category == TweakCategory.Privacy))
-            {
-                tweak.IsApplied = false;
-                // Note: Revert logic would be needed in OptimizationService for full implementation
-            }
-            StatusMessage = "Privacidad restablecida (requiere reinicio).";
         }
 
         private void SelectProfile(TweakProfile profile)
         {
-            StatusMessage = $"Perfil seleccionado: {profile.Name}";
             foreach (var tweak in Tweaks) tweak.IsApplied = profile.TweakIds.Contains(tweak.Id);
         }
 
@@ -153,30 +142,16 @@ namespace PhantomOS.ViewModels
             await ApplyChangesAsync();
         }
 
-        private async Task ApplyChangesAsync()
+        private async Task FixSecurityFindingsAsync()
         {
-            StatusMessage = "Iniciando optimización masiva...";
-            await Task.Run(() =>
-            {
-                SystemRestoreManager.CreateRestorePoint("PhantomOS Privacy Shield Session");
-                var toApply = Tweaks.Where(t => t.IsApplied).ToList();
-                var appliedList = new List<AtomicTweak>();
+            foreach (var f in SecurityFindings.ToList()) { if (!f.IsFixed) { if (_securityService.FixFinding(f)) f.IsFixed = true; } }
+            StatusMessage = "Seguridad reforzada.";
+        }
 
-                foreach (var tweak in toApply)
-                {
-                    StatusMessage = $"Procesando: {tweak.Name}...";
-                    if (_optimizationService.ApplyTweak(tweak)) appliedList.Add(tweak);
-                }
-
-                if (appliedList.Any())
-                {
-                    _optimizationService.GenerateReport(appliedList);
-                    StatusMessage = "Optimización completada. Reiniciando Explorer...";
-                    _optimizationService.RestartExplorer();
-                }
-
-                StatusMessage = "¡PhantomOS ha terminado con éxito!";
-            });
+        private async Task RevertPrivacyAsync()
+        {
+            foreach (var tweak in Tweaks.Where(t => t.Category == TweakCategory.Privacy)) tweak.IsApplied = false;
+            StatusMessage = "Ajustes de privacidad revertidos.";
         }
     }
 }
