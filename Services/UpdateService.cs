@@ -9,7 +9,7 @@ namespace PhantomOS.Services
     public class UpdateService
     {
         private const string RepoUrl = "https://api.github.com/repos/clevervi/PhantomOS/releases/latest";
-        private const string CurrentVersion = "0.7.0"; // Current assembly version
+        private const string CurrentVersion = "0.9.0"; // Current assembly version
 
         public string LatestVersion { get; private set; } = CurrentVersion;
         public bool UpdateAvailable { get; private set; } = false;

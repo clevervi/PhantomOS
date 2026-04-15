@@ -13,7 +13,7 @@
     <PackageProjectUrl>https://github.com/clevervi/PhantomOS</PackageProjectUrl>
     <RepositoryUrl>https://github.com/clevervi/PhantomOS</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>0.1.0-alpha</Version>
+    <Version>0.9.0</Version>
     <Copyright>Copyright © 2026 clevervi</Copyright>
   </PropertyGroup>
 
