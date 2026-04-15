@@ -1,0 +1,49 @@
+name: PhantomOS Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build Release
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Publish Self-Contained Executable
+      run: |
+        dotnet publish `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          --output ./publish
+
+    - name: Package Artifact
+      run: Compress-Archive -Path ./publish/* -DestinationPath PhantomOS-${{ github.ref_name }}-win-x64.zip
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: "PhantomOS ${{ github.ref_name }}"
+        body_path: CHANGELOG.md
+        files: PhantomOS-${{ github.ref_name }}-win-x64.zip
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
