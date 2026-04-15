@@ -1,8 +1,16 @@
-# 👻 PhantomOS Industrial Security Suite
-
-[![Build Status](https://github.com/clevervi/PhantomOS/actions/workflows/build.yml/badge.svg)](https://github.com/clevervi/PhantomOS/actions)
-[![Latest Release](https://img.shields.io/github/v/release/clevervi/PhantomOS)](https://github.com/clevervi/PhantomOS/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+---
+
+## 📥 DESCARGAR VERSIÓN ESTABLE (EXE)
+
+Para obtener la última versión compilada y lista para usar (v0.9.0):
+
+1.  Ve a la sección de **[Releases](https://github.com/clevervi/PhantomOS/releases/latest)**.
+2.  Descarga el archivo `PhantomOS-v0.9.0-win-x64.zip`.
+3.  Descomprime y ejecuta `PhantomOS.exe` como administrador.
+
+---
 
 ## Introducción
 
