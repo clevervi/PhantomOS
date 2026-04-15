@@ -6,19 +6,15 @@
         xmlns:services="using:PhantomOS.Services"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="800"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="850"
         x:Class="PhantomOS.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="PhantomOS Industrial - Deployment &amp; Maintenance Suite"
-        Width="1100" Height="800"
+        Title="PhantomOS Industrial"
+        Width="1100" Height="850"
         WindowStartupLocation="CenterScreen"
-        TransparencyLevelHint="AcrylicBlur"
+        TransparencyLevelHint="Mica,AcrylicBlur"
         Background="Transparent"
         ExtendClientAreaToDecorationsHint="True">
-
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
 
     <Window.Resources>
         <converters:EqualsConverter x:Key="EqualsConverter" />
@@ -28,106 +24,100 @@
     <Panel>
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
             <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.75" MaterialOpacity="0.85" />
+                <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.9" />
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Grid ColumnDefinitions="260,*">
-            <!-- Side Menu -->
-            <Border Grid.Column="0" Background="#11FFFFFF" BorderThickness="0,0,1,0" BorderBrush="#11FFFFFF">
-                <StackPanel Margin="20,60,20,20" Spacing="5">
-                    <TextBlock Text="PHANTOM OS" Classes="Header" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,40" Foreground="#66C2FF" FontWeight="Black"/>
-                    <ListBox x:Name="MenuBox" Background="Transparent" BorderThickness="0" SelectedIndex="0">
-                        <ListBoxItem Content="🚀 Optimización" Cursor="Hand" />
-                        <ListBoxItem Content="🛡️ Seguridad" Cursor="Hand" />
-                        <ListBoxItem Content="👻 Telemetría Zero" Cursor="Hand" />
-                        <ListBoxItem Content="💿 Creador ISO" Cursor="Hand" />
-                        <ListBoxItem Content="🧹 Limpiador" Cursor="Hand" />
+        <Grid ColumnDefinitions="280,*">
+            <!-- Sidebar -->
+            <Border Grid.Column="0" Background="#11000000" BorderThickness="0,0,1,0" BorderBrush="#11FFFFFF">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <StackPanel Grid.Row="0" Margin="30,60,30,40" Spacing="10">
+                        <TextBlock Text="👻 PHANTOM OS" FontSize="26" FontWeight="Black" Foreground="#66C2FF" LetterSpacing="2"/>
+                    </StackPanel>
+
+                    <ListBox Grid.Row="1" x:Name="MenuBox" Background="Transparent" BorderThickness="0" SelectedIndex="0" Margin="15,0">
+                        <ListBoxItem Content="🏠 Dashboard" />
+                        <ListBoxItem Content="🚀 Optimización" />
+                        <ListBoxItem Content="🛡️ Seguridad" />
+                        <ListBoxItem Content="👻 Privacidad" />
+                        <ListBoxItem Content="💿 Imagen ISO" />
+                        <ListBoxItem Content="🧹 Limpieza" />
                     </ListBox>
-                </StackPanel>
+
+                    <Border Grid.Row="2" Margin="20" Background="#0AFFFFFF" CornerRadius="12" Padding="15">
+                        <TextBlock Text="{Binding SystemSpecsSummary}" FontSize="11" Opacity="0.7" TextWrapping="Wrap"/>
+                    </Border>
+                </Grid>
             </Border>
 
-            <!-- Main Content Area -->
-            <Grid Grid.Column="1" Margin="30,60,30,30">
-                
-                <!-- VIEW 1: OPTIMIZATION (Simplified for space) -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=0}" Classes="Card">
-                    <TextBlock Text="Panel de Optimización" Classes="Header" />
-                </Border>
-
-                <!-- VIEW 2: SECURITY (Already implemented) -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=1}" Classes="Card">
-                    <TextBlock Text="Seguridad" Classes="Header" />
-                </Border>
-
-                <!-- VIEW 3: TELEMETRY (Already implemented) -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=2}" Classes="Card">
-                    <TextBlock Text="Privacidad" Classes="Header" />
-                </Border>
-
-                <!-- VIEW 4: ISO CREATOR -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=3}" Classes="Card">
-                    <Grid RowDefinitions="Auto,Auto,*,Auto">
-                        <TextBlock Grid.Row="0" Text="Modificador de Imágenes WIM" Classes="Header" Foreground="#00CCFF" />
-                        
-                        <StackPanel Grid.Row="1" Spacing="15" Margin="0,20">
-                            <TextBlock Text="Ruta del archivo install.wim:" FontSize="12" Opacity="0.5"/>
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBox Text="{Binding IsoWimPath}" Watermark="C:\Sources\install.wim" Background="#11FFFFFF" BorderThickness="1" BorderBrush="#22FFFFFF"/>
-                                <Button Grid.Column="1" Content="..." Margin="10,0,0,0" Padding="15,5"/>
-                            </Grid>
-                        </StackPanel>
-
-                        <Border Grid.Row="2" Background="#11FFFFFF" CornerRadius="12" Padding="20">
-                            <StackPanel Spacing="20">
-                                <TextBlock Text="Acciones Offline a realizar:" FontWeight="Bold" Opacity="0.7"/>
-                                <CheckBox Content="Aplicar Ajustes de Registro PhantomOS" IsChecked="True" />
-                                <CheckBox Content="Eliminar Aplicaciones Preinstaladas (Debloat)" IsChecked="True" />
-                                <CheckBox Content="Inyectar Drivers de Red (Experimental)" />
-                                
-                                <Separator Background="#11FFFFFF" />
-                                
-                                <TextBlock Text="{Binding IsoStatus}" FontSize="12" Opacity="0.8" Foreground="#66C2FF"/>
-                                <ProgressBar Value="{Binding IsoProgress}" Minimum="0" Maximum="100" Height="10" />
+            <!-- Content Area -->
+            <Panel Grid.Column="1" Margin="40,60,40,40">
+                <!-- VIEW 0: DASHBOARD -->
+                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=0}">
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="Estado del Sistema" FontSize="28" FontWeight="Black" Foreground="#66C2FF"/>
+                        <Border Background="#11FFFFFF" CornerRadius="20" Padding="40">
+                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                <TextBlock Text="{Binding TotalHealthScore}" FontSize="72" FontWeight="Black" Foreground="#66C2FF"/>
+                                <TextBlock Text="%" FontSize="24" VerticalAlignment="Bottom" Margin="0,0,0,15" Opacity="0.3"/>
                             </StackPanel>
                         </Border>
-
-                        <Button Grid.Row="3" Content="Procesar Imagen WIM" Command="{Binding ProcessIsoCommand}" 
-                                HorizontalAlignment="Stretch" Background="#00CCFF" Foreground="Black" FontWeight="Black" Padding="20" Margin="0,20,0,0"/>
-                    </Grid>
+                    </StackPanel>
                 </Border>
 
-                <!-- VIEW 5: CLEANER -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=4}" Classes="Card">
+                <!-- VIEW 1: OPTIMIZATION -->
+                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=1}">
                     <Grid RowDefinitions="Auto,*,Auto">
-                        <TextBlock Grid.Row="0" Text="Limpiador de Sistema" Classes="Header" Foreground="#FF5555" />
-                        
-                        <ScrollViewer Grid.Row="1" Margin="0,20">
-                            <ItemsControl ItemsSource="{Binding CleanupItems}">
+                        <TextBlock Grid.Row="0" Text="Optimización" FontSize="28" FontWeight="Black" Foreground="#66C2FF" Margin="0,0,0,20"/>
+                        <ScrollViewer Grid.Row="1">
+                            <ItemsControl ItemsSource="{Binding Tweaks}">
                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="services:CleanupService+CleanupItem">
-                                        <Border Background="#08FFFFFF" CornerRadius="12" Padding="15" Margin="0,4">
-                                            <DockPanel>
-                                                <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center" />
-                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="15,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding Size}" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.5"/>
-                                            </DockPanel>
+                                    <DataTemplate x:DataType="models:AtomicTweak">
+                                        <Border Background="#0AFFFFFF" CornerRadius="12" Padding="15" Margin="0,4">
+                                            <CheckBox IsChecked="{Binding IsApplied}" Content="{Binding Name}" />
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </ScrollViewer>
-
-                        <Button Grid.Row="2" Content="Limpiar Archivos Seleccionados" Command="{Binding RunCleanupCommand}" 
-                                HorizontalAlignment="Stretch" Background="#FF5555" Foreground="White" FontWeight="Black" Padding="20"/>
+                        <Button Grid.Row="2" Content="Aplicar" Command="{Binding ApplyCommand}" HorizontalAlignment="Stretch" Margin="0,20,0,0"/>
                     </Grid>
                 </Border>
 
-            </Grid>
+                <!-- VIEW 2: SECURITY -->
+                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=2}">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Text="Seguridad" FontSize="28" FontWeight="Black" Foreground="#00FF99" Margin="0,0,0,20"/>
+                        <ScrollViewer Grid.Row="1">
+                            <ItemsControl ItemsSource="{Binding SecurityFindings}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:SecurityFinding">
+                                        <Border Background="#0AFFFFFF" CornerRadius="12" Padding="15" Margin="0,4">
+                                            <TextBlock Text="{Binding Title}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <!-- VIEW 3: PRIVACY -->
+                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=3}">
+                    <TextBlock Text="Telemetría Zero" FontSize="28" FontWeight="Black" Foreground="#FFCC33"/>
+                </Border>
+
+                <!-- VIEW 4: ISO -->
+                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=4}">
+                    <TextBlock Text="ISO Modifier" FontSize="28" FontWeight="Black" Foreground="#00CCFF"/>
+                </Border>
+
+                <!-- VIEW 5: CLEANER -->
+                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=5}">
+                    <TextBlock Text="Deep Cleaner" FontSize="28" FontWeight="Black" Foreground="#FF5555"/>
+                </Border>
+            </Panel>
         </Grid>
-        
-        <Border VerticalAlignment="Bottom" Height="30" Background="#1A000000" BorderThickness="0,1,0,0" BorderBrush="#11FFFFFF">
-            <TextBlock Text="{Binding StatusMessage}" FontSize="11" Opacity="0.5" VerticalAlignment="Center" Margin="20,0"/>
-        </Border>
     </Panel>
 </Window>

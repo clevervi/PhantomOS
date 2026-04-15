@@ -24,6 +24,7 @@ namespace PhantomOS.ViewModels
         private string _statusMessage = "Listo";
         private string _systemSpecsSummary = "Cargando...";
         private int _securityScore = 100;
+        private int _totalHealthScore = 100;
         private string _isoWimPath = "";
         private string _isoMountPath = @"C:\PhantomOS_Mount";
         private double _isoProgress = 0;
@@ -37,6 +38,7 @@ namespace PhantomOS.ViewModels
         public string StatusMessage { get => _statusMessage; set => this.RaiseAndSetIfChanged(ref _statusMessage, value); }
         public string SystemSpecsSummary { get => _systemSpecsSummary; set => this.RaiseAndSetIfChanged(ref _systemSpecsSummary, value); }
         public int SecurityScore { get => _securityScore; set => this.RaiseAndSetIfChanged(ref _securityScore, value); }
+        public int TotalHealthScore { get => _totalHealthScore; set => this.RaiseAndSetIfChanged(ref _totalHealthScore, value); }
         
         public string IsoWimPath { get => _isoWimPath; set => this.RaiseAndSetIfChanged(ref _isoWimPath, value); }
         public double IsoProgress { get => _isoProgress; set => this.RaiseAndSetIfChanged(ref _isoProgress, value); }
@@ -97,9 +99,26 @@ namespace PhantomOS.ViewModels
                     foreach (var c in cleanupFound) CleanupItems.Add(c);
 
                     StatusMessage = $"Análisis completado. Encontrados {cleanupFound.Count} items de limpieza.";
+                    CalculateTotalHealth();
                 });
             }
             catch (Exception ex) { Logger.Error("Error en análisis", ex); }
+        }
+
+        private void CalculateTotalHealth()
+        {
+            // Security accounts for 50%, Optimization for 50%
+            int securityWeight = SecurityScore / 2;
+            
+            int appliedTweaks = Tweaks.Count(t => t.IsApplied);
+            int recommendedTweaks = Tweaks.Count(t => t.IsRecommended);
+            int optWeight = 0;
+            if (recommendedTweaks > 0)
+                optWeight = (appliedTweaks * 50) / recommendedTweaks;
+            else
+                optWeight = 50; // Every recommendation followed
+
+            TotalHealthScore = securityWeight + optWeight;
         }
 
         private async Task RunCleanupAsync()
