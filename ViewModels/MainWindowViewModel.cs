@@ -28,6 +28,7 @@ namespace PhantomOS.ViewModels
         private readonly SettingsService _settingsService;
         private readonly NetworkService _networkService;
         private readonly UpdateService _updateService;
+        private readonly System.Threading.CancellationTokenSource _cts = new();
 
         private int _totalHealthScore = 100;
         private string _isoWimPath = "";
@@ -113,14 +114,14 @@ namespace PhantomOS.ViewModels
             NewVersionMessage = $"Nueva v{_updateService.LatestVersion} disponible en GitHub.";
 
             // 2. Continuous Latency Monitor (Gaming Ping)
-            while (true)
+            while (!_cts.Token.IsCancellationRequested)
             {
                 var pings = await _networkService.GetGamingLatenciesAsync();
                 await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => {
                     GamingLatencies.Clear();
                     foreach (var p in pings) GamingLatencies.Add(p);
                 });
-                await Task.Delay(15000); // Every 15 seconds to avoid network noise
+                await Task.Delay(15000, _cts.Token).ConfigureAwait(false);
             }
         }
 
