@@ -144,6 +144,57 @@ namespace PhantomOS.Data
                 RegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSTCPIP\Parameters", // Nota: Esto suele ser por interfaz, lo simplificaremos por ahora o lo extenderemos luego
                 RegistryValueName = "TcpNoDelay",
                 RegistryValueData = 1
+            },
+
+            // --- TELEMETRY ZERO (DEEP PRIVACY) ---
+            new AtomicTweak
+            {
+                Id = "priv_bing_search",
+                Name = "Desactivar Bing en Inicio",
+                Description = "Elimina los resultados de búsqueda de la web en el menú de inicio.",
+                Category = TweakCategory.Privacy,
+                Risk = RiskLevel.Safe,
+                WhyActivate = "Mantiene tus búsquedas locales y acelera el menú de inicio.",
+                WhyDeactivate = "No podrás buscar contenido de internet directamente desde el menú inicio.",
+                RegistryKey = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search",
+                RegistryValueName = "BingSearchEnabled",
+                RegistryValueData = 0,
+                RequiresExplorerRestart = true
+            },
+            new AtomicTweak
+            {
+                Id = "priv_diagtrack",
+                Name = "Desactivar DiagTrack (Telemetría Pro)",
+                Description = "Desactiva el servicio de experiencias de usuario conectado y telemetría.",
+                Category = TweakCategory.Privacy,
+                Risk = RiskLevel.Moderate,
+                WhyActivate = "Bloquea el 90% del rastreo de Microsoft en segundo plano.",
+                WhyDeactivate = "Algunas funciones de depuración de Microsoft podrían no funcionar.",
+                ServiceName = "DiagTrack"
+            },
+            new AtomicTweak
+            {
+                Id = "priv_appraiser",
+                Name = "Desactivar Microsoft Appraiser",
+                Description = "Detiene la tarea que recopila datos de compatibilidad de aplicaciones.",
+                Category = TweakCategory.Privacy,
+                Risk = RiskLevel.Safe,
+                WhyActivate = "Evita escaneos de archivos innecesarios en segundo plano.",
+                WhyDeactivate = "Microsoft no podrá avisarte si una app dejará de ser compatible en el futuro.",
+                ScheduledTaskPath = @"\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser"
+            },
+            new AtomicTweak
+            {
+                Id = "priv_ceip",
+                Name = "Desactivar CEIP (Programa de Mejora)",
+                Description = "Bloquea el Programa de Mejora de la Experiencia del Usuario.",
+                Category = TweakCategory.Privacy,
+                Risk = RiskLevel.Safe,
+                WhyActivate = "Ahorra recursos de CPU y mejora la privacidad de uso.",
+                WhyDeactivate = "No colaboras con datos anónimos para mejorar Windows.",
+                RegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\SQMClient\Windows",
+                RegistryValueName = "CEIPEnable",
+                RegistryValueData = 0
             }
         };
 
@@ -161,7 +212,14 @@ namespace PhantomOS.Data
                 Name = "Máxima Privacidad",
                 Description = "Desactiva todos los servicios de rastreo y telemetría de Windows.",
                 Icon = "🛡️",
-                TweakIds = new List<string> { "priv_telemetry", "priv_location", "priv_copilot" }
+                TweakIds = new List<string> { "priv_telemetry", "priv_location", "priv_copilot", "priv_diagtrack" }
+            },
+            new TweakProfile
+            {
+                Name = "Telemetry Zero (Paranoid)",
+                Description = "Bloqueo absoluto de conexiones externas de Microsoft.",
+                Icon = "👻",
+                TweakIds = new List<string> { "priv_telemetry", "priv_diagtrack", "priv_bing_search", "priv_appraiser", "priv_ceip", "priv_location" }
             }
         };
     }

@@ -23,6 +23,7 @@ namespace PhantomOS.Models
         public RegistryValueKind RegistryValueKind { get; set; } = RegistryValueKind.DWord;
         
         public string? ServiceName { get; set; }
+        public string? ScheduledTaskPath { get; set; }
         
         public bool IsApplied 
         { 

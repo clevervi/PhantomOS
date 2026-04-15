@@ -13,6 +13,7 @@
 [Ll]og/
 phantom_os.log
 backups/
+artifacts/
 
 # Visual Studio Code
 .vscode/*

@@ -68,7 +68,7 @@ namespace PhantomOS.Services
             Logger.Info($"Aplicando ajuste: {tweak.Name}...");
             bool success = false;
 
-            // 1. Backup if registry
+            // 1. Registry backup and set
             if (!string.IsNullOrEmpty(tweak.RegistryKey))
             {
                 RegistryManager.BackupKey(tweak.RegistryKey);
@@ -80,9 +80,40 @@ namespace PhantomOS.Services
                 success = ServiceManager.SetStartType(tweak.ServiceName, ServiceStartMode.Disabled) && 
                           ServiceManager.StopService(tweak.ServiceName);
             }
+            // 3. Scheduled Task handling
+            else if (!string.IsNullOrEmpty(tweak.ScheduledTaskPath))
+            {
+                success = DisableScheduledTask(tweak.ScheduledTaskPath);
+            }
 
             if (success) tweak.IsApplied = true;
             return success;
+        }
+
+        private bool DisableScheduledTask(string taskPath)
+        {
+            try
+            {
+                Logger.Info($"Desactivando tarea programada: {taskPath}");
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "schtasks.exe",
+                    Arguments = $"/Change /TN \"{taskPath}\" /Disable",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardError = true
+                };
+                using (var process = Process.Start(startInfo))
+                {
+                    process?.WaitForExit();
+                    return process?.ExitCode == 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error desactivando tarea {taskPath}", ex);
+                return false;
+            }
         }
 
         public void RestartExplorer()
