@@ -8,6 +8,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using PhantomOS.Core;
 using PhantomOS.Models;
+using System.Threading.Tasks;
 
 namespace PhantomOS.Services
 {
@@ -20,6 +21,11 @@ namespace PhantomOS.Services
         {
             _toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
             if (!Directory.Exists(_toolsPath)) Directory.CreateDirectory(_toolsPath);
+        }
+
+        public async Task<List<SecurityFinding>> RunAuditAsync()
+        {
+            return await Task.Run(() => RunSecurityAudit());
         }
 
         public List<SecurityFinding> RunSecurityAudit()
@@ -42,6 +48,22 @@ namespace PhantomOS.Services
             }
 
             return findings;
+        }
+
+        public int CalculateScore(List<SecurityFinding> findings)
+        {
+            if (!findings.Any()) return 100;
+            
+            // Critical: -25, High: -15, Medium: -5
+            int penalty = findings.Sum(f => f.Severity switch
+            {
+                Severity.Critical => 25,
+                Severity.High => 15,
+                Severity.Medium => 5,
+                _ => 2
+            });
+
+            return Math.Max(0, 100 - penalty);
         }
 
         private List<SecurityFinding> RunNativeChecks()

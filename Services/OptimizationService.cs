@@ -6,9 +6,11 @@ using System.Linq;
 using System.Runtime.Versioning;
 using System.ServiceProcess;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.Win32;
 using PhantomOS.Core;
 using PhantomOS.Models;
+using PhantomOS.Data;
 
 namespace PhantomOS.Services
 {
@@ -23,6 +25,11 @@ namespace PhantomOS.Services
             {
                 Directory.CreateDirectory(ReportsDir);
             }
+        }
+
+        public List<AtomicTweak> GetCatalog()
+        {
+            return TweakCatalog.Tweaks;
         }
 
         public void CheckTweakStatus(AtomicTweak tweak)
@@ -88,6 +95,23 @@ namespace PhantomOS.Services
 
             if (success) tweak.IsApplied = true;
             return success;
+        }
+
+        public async Task<bool> ApplyBatchAsync(List<AtomicTweak> tweaks)
+        {
+            bool allSuccess = true;
+            await Task.Run(() =>
+            {
+                foreach (var tweak in tweaks)
+                {
+                    if (!ApplyTweak(tweak))
+                    {
+                        allSuccess = false;
+                        Logger.Warning($"No se pudo aplicar el ajuste: {tweak.Name}");
+                    }
+                }
+            });
+            return allSuccess;
         }
 
         private bool DisableScheduledTask(string taskPath)

@@ -1,65 +1,58 @@
-# 👻 PhantomOS
+# 👻 PhantomOS Industrial Security Suite
 
-![Version](https://img.shields.io/badge/version-0.6.0--alpha-blueviolet?style=for-the-badge)
-![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-blue?style=for-the-badge)
-![.NET](https://img.shields.io/badge/.NET-10.0-512bd4?style=for-the-badge)
+[![Build Status](https://github.com/clevervi/PhantomOS/actions/workflows/build.yml/badge.svg)](https://github.com/clevervi/PhantomOS/actions)
+[![Version](https://img.shields.io/badge/version-0.9.0--beta-blueviolet)](https://github.com/clevervi/PhantomOS/releases)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**PhantomOS** is an industrialized, open-source system optimization and security suite for Windows. Built with **Avalonia UI** and **.NET 10**, it provides a modular, transparent, and high-performance approach to system hardening.
-
----
-
-## 🚀 Key Features
-
-### 🛠️ Intelligent Optimization
-- **Hardware-Aware Engine**: Automatically detects CPU, GPU, RAM, and Disk type (SSD/HDD) to recommend tailored tweaks.
-- **Atomic Catalog**: Over 20+ documented tweaks for Gaming, Privacy, Networking, and Performance.
-- **Smart Fix**: Apply all recommended safe optimizations with one click.
-
-### 🛡️ Security Audit (Powered by Seatbelt)
-- **Deep Audit**: Integrated security engine that scans for UAC misconfigurations, insecure service permissions, and more.
-- **Security Score**: A visual health indicator (0-100%) of your system's attack surface.
-- **One-Click Hardening**: Instantly fix critical security vulnerabilities.
-
-### 👻 Telemetry Zero
-- **Total Privacy**: Block Windows tracing, Bing search in Start Menu, Cortana, and background data collectors.
-- **Panic Button**: Quickly revert privacy settings to factory defaults if needed.
-
-### 💿 ISO Creator (Industrial Deployment)
-- **Offline Tweaking**: Mount `.wim` images and apply PhantomOS optimizations directly to the image.
-- **Debloater**: Remove pre-installed provisioned packages from offline images.
+**PhantomOS** is a premium, open-source Windows optimization and security suite designed for power users, gamers, and security professionals. Unlike generic "cleaners", PhantomOS uses industrial-grade auditing tools and real-time network telemetry to ensure your system is always at peak performance.
 
 ---
 
-## 🏗️ Architecture
+## ✨ Key Features
 
-```mermaid
-graph TD
-    UI[Avalonia UI / ReactiveUI] --> VM[ViewModels]
-    VM --> OS[OptimizationService]
-    VM --> SS[SecurityService]
-    VM --> IS[IsoService]
-    OS --> RM[RegistryManager]
-    OS --> SM[ServiceManager]
-    SS --> SB[Seatbelt Engine]
-    IS --> DISM[DISM / Reg.exe]
-```
+### 🛡️ Industrial Security (Powered by Seatbelt)
+Deep system auditing that identifies vulnerabilities, misconfigurations, and privilege escalation risks. Every finding includes a "Smart Fix" button to secure your system instantly.
+
+### 🎮 Gaming Link (Low-Latency Analyzer)
+A real-time network monitor that pings gaming clusters (Steam, Epic, Riot) and DNS providers (Google, Cloudflare) to ensure your connection is stable before you launch.
+
+### 🕵️ Zero Telemetry Shield
+Dual-layer privacy protection that blackholes Microsoft telemetry DNS via the `hosts` file and disables the `DiagTrack` service for a completely silent Windows experience.
+
+### 🧹 Deep Cleaner Pro
+A surgical cleaning engine that targets Discord, Steam, and Browser caches while protecting your active sessions (cookies).
+
+### 📀 ISO Modifier Engine
+Modify Windows WIM images directly to deploy pre-optimized systems.
 
 ---
 
-## 💻 Technical Specifications
-- **Framework**: Avalonia UI 11+
-- **Pattern**: MVVM (ReactiveUI)
-- **OS Target**: Windows 10 (Build 19041+) / Windows 11
-- **Privileges**: Requires Administrator status (Manifested).
+## 🚀 Getting Started
+
+1. **Download** the latest release from the [Releases](https://github.com/clevervi/PhantomOS/releases) page.
+2. **Run as Administrator** (Required for Registry, Services, and Hosts file modification).
+3. **Smart Wizard**: On first run, choose your path (Gaming, Security, or Balanced) and let PhantomOS do the rest.
+
+---
+
+## 🛠️ Technology Stack
+- **Framework**: .NET 10 (C#)
+- **UI**: Avalonia UI (ReactiveUI)
+- **Design**: Mica / Acrylic Glassmorphism
+- **Security**: Embedded Seatbelt Engine
 
 ---
 
 ## 🤝 Contributing
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+PhantomOS is open for contributions! If you have a new tweak or security check, feel free to open a Pull Request.
 
-## 📄 License
-Distributed under the **MIT License**. See `LICENSE` for more information.
+1. Fork the repo.
+2. Build with `dotnet build`.
+3. Ensure authorship is consistent with the project's standards.
 
 ---
-*Created with ❤️ by **clevervi** and the PhantomOS Community.*
+
+## 👤 Author
+**clevervi** 
+
+*PhantomOS is provided "as is". Always create a system restore point before applying deep optimizations.*

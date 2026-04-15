@@ -3,12 +3,18 @@ using System.Management;
 using System.Runtime.Versioning;
 using PhantomOS.Core;
 using PhantomOS.Models;
+using System.Threading.Tasks;
 
 namespace PhantomOS.Services
 {
     [SupportedOSPlatform("windows")]
     public class HardwareService
     {
+        public async Task<HardwareInfo> GetSpecsAsync()
+        {
+            return await Task.Run(() => GetSystemInfo());
+        }
+
         public HardwareInfo GetSystemInfo()
         {
             var info = new HardwareInfo();

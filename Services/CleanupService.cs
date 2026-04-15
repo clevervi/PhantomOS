@@ -23,7 +23,10 @@ namespace PhantomOS.Services
             @"C:\Windows\Temp",                                  // Windows Temp
             @"C:\Windows\Prefetch",                              // Prefetch
             @"C:\Windows\SoftwareDistribution\Download",         // Windows Update Cache
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Windows\Explorer") // Icon Cache
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Windows\Explorer"), // Icon Cache
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"discord\Cache"), // Discord Cache
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\User Data\Default\Cache"), // Chrome Cache
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Edge\User Data\Default\Cache") // Edge Cache
         };
 
         public async Task<List<CleanupItem>> ScanAsync()
@@ -64,7 +67,9 @@ namespace PhantomOS.Services
         {
             try
             {
-                return new DirectoryInfo(path).EnumerateFiles("*", SearchOption.AllDirectories).Sum(fi => fi.Length);
+                return new DirectoryInfo(path).EnumerateFiles("*", SearchOption.AllDirectories)
+                    .Where(fi => !IsProtectedFile(fi.Name))
+                    .Sum(fi => fi.Length);
             }
             catch { return 0; }
         }
@@ -74,10 +79,12 @@ namespace PhantomOS.Services
             long freed = 0;
             var di = new DirectoryInfo(path);
 
-            foreach (FileInfo file in di.EnumerateFiles())
+            foreach (FileInfo file in di.EnumerateFiles("*", SearchOption.AllDirectories))
             {
                 try
                 {
+                    if (IsProtectedFile(file.Name)) continue;
+                    
                     long size = file.Length;
                     file.Delete();
                     freed += size;
@@ -85,23 +92,28 @@ namespace PhantomOS.Services
                 catch { /* File in use */ }
             }
 
+            // Cleanup empty subdirectories
             foreach (DirectoryInfo dir in di.EnumerateDirectories())
             {
-                try
-                {
-                    freed += GetDirectorySize(dir.FullName);
-                    dir.Delete(true);
-                }
-                catch { /* Directory in use */ }
+                try { if (!IsProtectedFile(dir.Name)) dir.Delete(true); } catch { }
             }
 
             return freed;
+        }
+
+        private bool IsProtectedFile(string fileName)
+        {
+            string lowered = fileName.ToLower();
+            return lowered.Contains("cookie") || lowered.Contains("login") || lowered.Contains("session");
         }
 
         private string GetFriendlyName(string path)
         {
             if (path.Contains("SoftwareDistribution")) return "Cache de Windows Update";
             if (path.Contains("Prefetch")) return "Archivos Prefetch (Arranque)";
+            if (path.Contains("discord")) return "Cache de Discord";
+            if (path.Contains("Chrome")) return "Cache de Google Chrome";
+            if (path.Contains("Edge")) return "Cache de Microsoft Edge";
             if (path.Contains("Windows\\Temp")) return "Archivos Temporales del Sistema";
             if (path.EndsWith("Local\\Temp")) return "Archivos Temporales del Usuario";
             if (path.Contains("Explorer")) return "Caché de Iconos y Miniaturas";

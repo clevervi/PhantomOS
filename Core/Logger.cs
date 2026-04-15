@@ -7,6 +7,8 @@ namespace PhantomOS.Core
     {
         private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "phantom_os.log");
 
+        public static event Action<string>? OnLog;
+
         public static void Log(string message, string level = "INFO")
         {
             try
@@ -16,6 +18,9 @@ namespace PhantomOS.Core
                 
                 // Also write to console for debug
                 Console.WriteLine(logLine);
+
+                // Notify subscribers (UI)
+                OnLog?.Invoke(logLine);
             }
             catch
             {
@@ -25,7 +30,7 @@ namespace PhantomOS.Core
 
         public static void Info(string message) => Log(message, "INFO");
         public static void Warning(string message) => Log(message, "WARN");
-        public static void Error(string message, Exception ex = null) 
+        public static void Error(string message, Exception? ex = null) 
         {
             string fullMessage = ex != null ? $"{message} | Exception: {ex.Message}" : message;
             Log(fullMessage, "ERROR");

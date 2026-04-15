@@ -19,6 +19,7 @@
     <Window.Resources>
         <converters:EqualsConverter x:Key="EqualsConverter" />
         <converters:SeverityToColorConverter x:Key="SeverityToColorConverter" />
+        <PageSlide x:Key="TabTransition" Duration="0.4" Orientation="Horizontal" />
     </Window.Resources>
 
     <Panel>
@@ -43,6 +44,7 @@
                         <ListBoxItem Content="👻 Privacidad" />
                         <ListBoxItem Content="💿 Imagen ISO" />
                         <ListBoxItem Content="🧹 Limpieza" />
+                        <ListBoxItem Content="📝 Actividad" />
                     </ListBox>
 
                     <Border Grid.Row="2" Margin="20" Background="#0AFFFFFF" CornerRadius="12" Padding="15">
@@ -52,72 +54,198 @@
             </Border>
 
             <!-- Content Area -->
-            <Panel Grid.Column="1" Margin="40,60,40,40">
-                <!-- VIEW 0: DASHBOARD -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=0}">
-                    <StackPanel Spacing="20">
-                        <TextBlock Text="Estado del Sistema" FontSize="28" FontWeight="Black" Foreground="#66C2FF"/>
-                        <Border Background="#11FFFFFF" CornerRadius="20" Padding="40">
-                            <StackPanel Orientation="Horizontal" Spacing="20">
-                                <TextBlock Text="{Binding TotalHealthScore}" FontSize="72" FontWeight="Black" Foreground="#66C2FF"/>
-                                <TextBlock Text="%" FontSize="24" VerticalAlignment="Bottom" Margin="0,0,0,15" Opacity="0.3"/>
-                            </StackPanel>
-                        </Border>
+            <Grid Grid.Column="1" Margin="40,60,40,40" RowDefinitions="Auto,*">
+                <!-- Global Update Banner -->
+                <Border Grid.Row="0" IsVisible="{Binding IsUpdateAvailable}" Background="#33FFCC33" CornerRadius="8" Padding="15" Margin="0,0,0,20">
+                    <DockPanel>
+                        <TextBlock Text="✨" FontSize="18" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding NewVersionMessage}" VerticalAlignment="Center" FontWeight="Bold"/>
+                        <Button Content="Actualizar" Background="#FFFFCC33" Foreground="Black" FontWeight="Black" HorizontalAlignment="Right" Padding="15,5" CornerRadius="5"/>
+                    </DockPanel>
+                </Border>
+
+                <TransitioningContentControl Grid.Row="1" Content="{Binding #MenuBox.SelectedIndex}" PageTransition="{StaticResource TabTransition}">
+                    <TransitioningContentControl.ContentTemplate>
+                        <DataTemplate>
+                            <Panel>
+                                <!-- VIEW 0: DASHBOARD -->
+                                <Border IsVisible="{Binding Converter={StaticResource EqualsConverter}, ConverterParameter=0}">
+                                    <Grid RowDefinitions="Auto,Auto,*">
+                                        <TextBlock Grid.Row="0" Text="Estado del Sistema" FontSize="28" FontWeight="Black" Foreground="#66C2FF" Margin="0,0,0,20"/>
+                                        <Border Grid.Row="1" Background="#11FFFFFF" CornerRadius="20" Padding="40" Margin="0,0,0,20">
+                                            <DockPanel>
+                                                <StackPanel Orientation="Horizontal" Spacing="20">
+                                                    <TextBlock Text="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).TotalHealthScore}" FontSize="72" FontWeight="Black" Foreground="#66C2FF"/>
+                                                    <TextBlock Text="%" FontSize="24" VerticalAlignment="Bottom" Margin="0,0,0,15" Opacity="0.3"/>
+                                                </StackPanel>
+                                                <Button Content="Relanzar Configuración" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ResetWizardCommand}" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.5"/>
+                                            </DockPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- VIEW 1: OPTIMIZATION -->
+                                <Border IsVisible="{Binding Converter={StaticResource EqualsConverter}, ConverterParameter=1}">
+                                    <Grid RowDefinitions="Auto,*,Auto">
+                                        <TextBlock Grid.Row="0" Text="Optimización" FontSize="28" FontWeight="Black" Foreground="#66C2FF" Margin="0,0,0,20"/>
+                                        <ScrollViewer Grid.Row="1">
+                                            <ItemsControl ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Tweaks}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:AtomicTweak">
+                                                        <Border Background="#0AFFFFFF" CornerRadius="12" Padding="15" Margin="0,4">
+                                                            <CheckBox IsChecked="{Binding IsApplied}" Content="{Binding Name}" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                        <Button Grid.Row="2" Content="Aplicar" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ApplyCommand}" HorizontalAlignment="Stretch" Margin="0,20,0,0"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- VIEW 2: SECURITY -->
+                                <Border IsVisible="{Binding Converter={StaticResource EqualsConverter}, ConverterParameter=2}">
+                                    <Grid RowDefinitions="Auto,*">
+                                        <TextBlock Grid.Row="0" Text="Seguridad" FontSize="28" FontWeight="Black" Foreground="#00FF99" Margin="0,0,0,20"/>
+                                        <ScrollViewer Grid.Row="1">
+                                            <ItemsControl ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SecurityFindings}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:SecurityFinding">
+                                                        <Border Background="#0AFFFFFF" CornerRadius="12" Padding="15" Margin="0,4">
+                                                            <TextBlock Text="{Binding Title}" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Grid>
+                                </Border>
+
+                                <!-- VIEW 3: PRIVACY & NETWORK -->
+                                <Border IsVisible="{Binding Converter={StaticResource EqualsConverter}, ConverterParameter=3}">
+                                    <Grid RowDefinitions="Auto,Auto,Auto,*">
+                                        <TextBlock Grid.Row="0" Text="Privacidad &amp; Red" FontSize="28" FontWeight="Black" Foreground="#FFCC33" Margin="0,0,0,20"/>
+                                        
+                                        <Border Grid.Row="1" Background="#11FFFFFF" CornerRadius="12" Padding="20" Margin="0,0,0,20">
+                                            <StackPanel Spacing="15">
+                                                <TextBlock Text="LATENCIA GAMING (PRO ANALYZER)" FontSize="12" FontWeight="Black" Opacity="0.4"/>
+                                                <ItemsControl ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).GamingLatencies}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="services:NetworkService+PingResult">
+                                                            <Border Background="#0AFFFFFF" CornerRadius="8" Padding="12,8" Margin="0,0,10,10" MinWidth="140">
+                                                                <DockPanel>
+                                                                    <TextBlock Text="{Binding Name}" FontSize="11" Opacity="0.6" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding Status}" Foreground="{Binding Color}" FontWeight="Black" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                                </DockPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Grid.Row="2" Background="#11FFCC33" CornerRadius="12" Padding="25" Margin="0,0,0,20">
+                                            <DockPanel>
+                                                <StackPanel Spacing="5">
+                                                    <TextBlock Text="Zero Telemetry Shield" FontWeight="Black" FontSize="20" Foreground="#FFCC33"/>
+                                                    <TextBlock Text="Bloqueo profundo de red + Servicio DiagTrack." Opacity="0.6"/>
+                                                </StackPanel>
+                                                <Button Content="Activar Zero" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ApplyZeroTelemetryCommand}" Background="#FFCC33" Foreground="Black" FontWeight="Black" Padding="25,12" CornerRadius="10" HorizontalAlignment="Right"/>
+                                            </DockPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- VIEW 4: ISO -->
+                                <Border IsVisible="{Binding Converter={StaticResource EqualsConverter}, ConverterParameter=4}">
+                                    <TextBlock Text="ISO Modifier" FontSize="28" FontWeight="Black" Foreground="#00CCFF"/>
+                                </Border>
+
+                                <!-- VIEW 5: CLEANER -->
+                                <Border IsVisible="{Binding Converter={StaticResource EqualsConverter}, ConverterParameter=5}">
+                                    <Grid RowDefinitions="Auto,*,Auto">
+                                        <TextBlock Grid.Row="0" Text="Deep Cleaner" FontSize="28" FontWeight="Black" Foreground="#FF5555" Margin="0,0,0,20"/>
+                                        <ScrollViewer Grid.Row="1" Margin="0,0,0,20">
+                                            <ItemsControl ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CleanupItems}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="services:CleanupService+CleanupItem">
+                                                        <Border Background="#0AFFFFFF" CornerRadius="12" Padding="15" Margin="0,4">
+                                                            <DockPanel>
+                                                                <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="15,0" VerticalAlignment="Center"/>
+                                                            </DockPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                        <Button Grid.Row="2" Content="Ejecutar Limpieza" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RunCleanupCommand}" HorizontalAlignment="Stretch" Background="#FF5555" Padding="20"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- VIEW 6: LOGS -->
+                                <Border IsVisible="{Binding Converter={StaticResource EqualsConverter}, ConverterParameter=6}">
+                                    <Grid RowDefinitions="Auto,*">
+                                        <TextBlock Grid.Row="0" Text="Registro de Actividad" FontSize="28" FontWeight="Black" Foreground="#66C2FF" Margin="0,0,0,20"/>
+                                        <Border Grid.Row="1" Background="#0AFFFFFF" CornerRadius="12" Padding="10">
+                                            <ListBox ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).AppLogs}" Background="Transparent" Foreground="#AAFFFFFF" FontSize="12" FontFamily="Consolas,Monospace"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </Panel>
+                        </DataTemplate>
+                    </TransitioningContentControl.ContentTemplate>
+                </TransitioningContentControl>
+
+                <!-- SMART ONBOARDING WIZARD OVERLAY -->
+                <Border IsVisible="{Binding ShowWizard}" Background="#CC000000" CornerRadius="20">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="600" Spacing="30">
+                        <StackPanel Spacing="10" HorizontalAlignment="Center">
+                            <TextBlock Text="BIENVENIDO A PHANTOM OS" FontSize="32" FontWeight="Black" Foreground="#66C2FF" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Personaliza tu experiencia de optimización industrial en un clic." Opacity="0.5" HorizontalAlignment="Center"/>
+                        </StackPanel>
+
+                        <UniformGrid Columns="3">
+                            <Button Command="{Binding ApplyWizardProfileCommand}" CommandParameter="Gaming" Background="Transparent" BorderThickness="0">
+                                <Border Background="#11FFFFFF" CornerRadius="15" Padding="25" Margin="10">
+                                    <StackPanel Spacing="15">
+                                        <TextBlock Text="🎮" FontSize="40" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="GAMING" FontWeight="Black" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Prioridad de CPU + Latencia de Red." FontSize="10" Opacity="0.5" TextAlignment="Center" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+
+                            <Button Command="{Binding ApplyWizardProfileCommand}" CommandParameter="Security" Background="Transparent" BorderThickness="0">
+                                <Border Background="#11FFFFFF" CornerRadius="15" Padding="25" Margin="10">
+                                    <StackPanel Spacing="15">
+                                        <TextBlock Text="🛡️" FontSize="40" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="SECURITY" FontWeight="Black" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Blindaje Zero + Privacidad total." FontSize="10" Opacity="0.5" TextAlignment="Center" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+
+                            <Button Command="{Binding ApplyWizardProfileCommand}" CommandParameter="Balanced" Background="Transparent" BorderThickness="0">
+                                <Border Background="#11FFFFFF" CornerRadius="15" Padding="25" Margin="10">
+                                    <StackPanel Spacing="15">
+                                        <TextBlock Text="⚖️" FontSize="40" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="BALANCED" FontWeight="Black" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Recomendado para uso diario pro." FontSize="10" Opacity="0.5" TextAlignment="Center" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+                        </UniformGrid>
+                        
+                        <Button Content="Saltar Asistente" Command="{Binding ResetWizardCommand}" Background="Transparent" HorizontalAlignment="Center" FontSize="12" Opacity="0.3"/>
                     </StackPanel>
                 </Border>
-
-                <!-- VIEW 1: OPTIMIZATION -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=1}">
-                    <Grid RowDefinitions="Auto,*,Auto">
-                        <TextBlock Grid.Row="0" Text="Optimización" FontSize="28" FontWeight="Black" Foreground="#66C2FF" Margin="0,0,0,20"/>
-                        <ScrollViewer Grid.Row="1">
-                            <ItemsControl ItemsSource="{Binding Tweaks}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="models:AtomicTweak">
-                                        <Border Background="#0AFFFFFF" CornerRadius="12" Padding="15" Margin="0,4">
-                                            <CheckBox IsChecked="{Binding IsApplied}" Content="{Binding Name}" />
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                        <Button Grid.Row="2" Content="Aplicar" Command="{Binding ApplyCommand}" HorizontalAlignment="Stretch" Margin="0,20,0,0"/>
-                    </Grid>
-                </Border>
-
-                <!-- VIEW 2: SECURITY -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=2}">
-                    <Grid RowDefinitions="Auto,*">
-                        <TextBlock Grid.Row="0" Text="Seguridad" FontSize="28" FontWeight="Black" Foreground="#00FF99" Margin="0,0,0,20"/>
-                        <ScrollViewer Grid.Row="1">
-                            <ItemsControl ItemsSource="{Binding SecurityFindings}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="models:SecurityFinding">
-                                        <Border Background="#0AFFFFFF" CornerRadius="12" Padding="15" Margin="0,4">
-                                            <TextBlock Text="{Binding Title}" />
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
-
-                <!-- VIEW 3: PRIVACY -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=3}">
-                    <TextBlock Text="Telemetría Zero" FontSize="28" FontWeight="Black" Foreground="#FFCC33"/>
-                </Border>
-
-                <!-- VIEW 4: ISO -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=4}">
-                    <TextBlock Text="ISO Modifier" FontSize="28" FontWeight="Black" Foreground="#00CCFF"/>
-                </Border>
-
-                <!-- VIEW 5: CLEANER -->
-                <Border IsVisible="{Binding #MenuBox.SelectedIndex, Converter={StaticResource EqualsConverter}, ConverterParameter=5}">
-                    <TextBlock Text="Deep Cleaner" FontSize="28" FontWeight="Black" Foreground="#FF5555"/>
-                </Border>
-            </Panel>
+            </Grid>
         </Grid>
     </Panel>
 </Window>
