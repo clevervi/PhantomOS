@@ -1,10 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    
+    <!-- Professional Metadata -->
+    <Authors>clevervi</Authors>
+    <Description>🌌 PhantomOS: A premium Windows optimization and security orchestrator.</Description>
+    <PackageProjectUrl>https://github.com/clevervi/PhantomOS</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/clevervi/PhantomOS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Version>0.1.0-alpha</Version>
+    <Copyright>Copyright © 2026 clevervi</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
