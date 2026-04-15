@@ -1,0 +1,32 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <Style Selector="Window">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Header Style -->
+    <Style Selector="TextBlock.Header">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="#EEEEEE" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
+    <!-- Card Style -->
+    <Style Selector="Border.Card">
+        <Setter Property="Background" Value="#22FFFFFF" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="15" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="#33FFFFFF" />
+    </Style>
+
+    <!-- Side Menu Item Style -->
+    <Style Selector="ListBoxItem">
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Margin" Value="0,2" />
+    </Style>
+
+</Styles>

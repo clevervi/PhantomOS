@@ -1,0 +1,36 @@
+# .gitignore for PhantomOS (Avalonia + .NET)
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+phantom_os.log
+backups/
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# .NET
+*.swp
+*.bak
+*.cache
+*.tmp
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Avalonia-specific
+*.axaml.g.cs
