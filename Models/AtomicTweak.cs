@@ -29,6 +29,14 @@ namespace PhantomOS.Models
             get => _isApplied;
             set => this.RaiseAndSetIfChanged(ref _isApplied, value);
         }
+
+        private bool _isRecommended;
+        public bool IsRecommended
+        {
+            get => _isRecommended;
+            set => this.RaiseAndSetIfChanged(ref _isRecommended, value);
+        }
+
         public bool RequiresReboot { get; set; }
         public bool RequiresExplorerRestart { get; set; }
 

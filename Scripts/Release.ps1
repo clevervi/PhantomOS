@@ -6,17 +6,17 @@ $projectFile = "$projectName.csproj"
 $outputDir = ".\artifacts"
 $runtime = "win-x64"
 
-Write-Host "🚀 Iniciando proceso de Release para $projectName ($runtime)..." -ForegroundColor Cyan
+Write-Host "Starting Release process for $projectName ($runtime)..."
 
 # 1. Clean up old artifacts
 if (Test-Path $outputDir) {
-    Write-Host "🧹 Limpiando directorio de artifacts..."
+    Write-Host "Cleaning artifacts directory..."
     Remove-Item $outputDir -Recurse -Force
 }
 New-Item -ItemType Directory -Path $outputDir | Out-Null
 
 # 2. Publish Single-File Executable
-Write-Host "📦 Publicando ejecutable de archivo único..." -ForegroundColor Yellow
+Write-Host "Publishing single-file executable..."
 dotnet publish $projectFile `
     -c Release `
     -r $runtime `
@@ -28,15 +28,16 @@ dotnet publish $projectFile `
     /p:DebugSymbols=false
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Publicación exitosa." -ForegroundColor Green
+    Write-Host "Publish successful."
     
     # 3. Zip the artifact
-    $zipPath = "$outputDir\$projectName-$runtime-v0.1.zip"
-    Write-Host "📚 Comprimiendo artifact en $zipPath..."
+    $zipPath = "$outputDir\$projectName-$runtime-v0.2.zip"
+    Write-Host "Compressing artifact into $zipPath..."
     Compress-Archive -Path "$outputDir\$runtime\*" -DestinationPath $zipPath
     
-    Write-Host "🎉 Proceso de Release completado con éxito." -ForegroundColor Green
-    Write-Host "📂 Los archivos se encuentran en: $((Get-Location).Path)\artifacts"
+    Write-Host "Release process completed successfully."
+    $path = (Get-Location).Path
+    Write-Host "Artifacts are located in: $path\artifacts"
 } else {
-    Write-Error "❌ Error durante la publicación."
+    Write-Error "Error during publish."
 }

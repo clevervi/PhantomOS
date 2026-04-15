@@ -45,10 +45,32 @@
 
             <!-- Main Content Area -->
             <Border Grid.Column="1" Margin="10,50,20,20" Classes="Card">
-                <Grid RowDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Row="0" Text="Panel de Optimización" Classes="Header" />
+                <Grid RowDefinitions="Auto,Auto,*,Auto">
+                    <!-- Dashboard Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                        <TextBlock Text="⚙️ Panel de Control Inteligente" Classes="Header" />
+                        <Border Background="#11FFFFFF" CornerRadius="5" Padding="10">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="💻 Detectado:" FontWeight="Bold" Opacity="0.5" />
+                                <TextBlock Text="{Binding SystemSpecsSummary}" FontSize="12" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Smart Fix Banner -->
+                    <Border Grid.Row="1" Background="#330078D4" CornerRadius="10" Padding="15" Margin="0,0,0,15">
+                        <DockPanel>
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Sugerencia de PhantomOS" FontWeight="Bold" Foreground="#66C2FF"/>
+                                <TextBlock Text="Hemos analizado tu hardware y tenemos optimizaciones ideales listas." FontSize="12" Opacity="0.8"/>
+                            </StackPanel>
+                            <Button Content="Ejecutar Smart Fix" HorizontalAlignment="Right" 
+                                    Command="{Binding SmartFixCommand}"
+                                    Classes="Primary" Background="#0078D4" Padding="15,8" CornerRadius="5"/>
+                        </DockPanel>
+                    </Border>
                     
-                    <ScrollViewer Grid.Row="1" Margin="0,10">
+                    <ScrollViewer Grid.Row="2" Margin="0,10">
                         <StackPanel Spacing="20">
                             <!-- Profiles Section -->
                             <TextBlock Text="Perfiles Recomendados" FontWeight="SemiBold" Opacity="0.8"/>
@@ -76,7 +98,7 @@
                             <Separator Background="#22FFFFFF" Height="1" Margin="0,10"/>
 
                             <!-- Atomic Tweaks List -->
-                            <TextBlock Text="Ajustes Atómicos" FontWeight="SemiBold" Opacity="0.8"/>
+                            <TextBlock Text="Todos los Ajustes" FontWeight="SemiBold" Opacity="0.8"/>
                             <ItemsControl ItemsSource="{Binding Tweaks}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="models:AtomicTweak">
@@ -88,6 +110,10 @@
                                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                         <Border Background="#44000000" CornerRadius="4" Padding="6,2">
                                                             <TextBlock Text="{Binding Category}" FontSize="10" Opacity="0.7"/>
+                                                        </Border>
+                                                        <!-- Smart Badge -->
+                                                        <Border IsVisible="{Binding IsRecommended}" Background="#3300FF00" BorderBrush="#6600FF00" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                                            <TextBlock Text="⭐ RECOMENDADO" FontSize="10" Foreground="#AAFF00" FontWeight="Bold"/>
                                                         </Border>
                                                     </StackPanel>
                                                     <TextBlock Text="{Binding Description}" FontSize="12" Opacity="0.6" Margin="0,2,0,0"/>
@@ -119,14 +145,13 @@
                     </ScrollViewer>
 
                     <!-- Status and Apply -->
-                    <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="#22FFFFFF" Padding="0,15,0,0">
+                    <Border Grid.Row="3" BorderThickness="0,1,0,0" BorderBrush="#22FFFFFF" Padding="0,15,0,0">
                         <DockPanel>
                             <TextBlock Text="{Binding StatusMessage}" Opacity="0.5" VerticalAlignment="Center" 
                                        TextWrapping="Wrap" MaxWidth="500"/>
-                            <Button Content="Aplicar Optimizaciones" HorizontalAlignment="Right" 
+                            <Button Content="Aplicar Selección" HorizontalAlignment="Right" 
                                     Command="{Binding ApplyCommand}"
-                                    Classes="Primary"
-                                    Background="#0078D4" Foreground="White" Padding="20,10" CornerRadius="6"/>
+                                    Background="#44FFFFFF" Padding="20,10" CornerRadius="6"/>
                         </DockPanel>
                     </Border>
                 </Grid>

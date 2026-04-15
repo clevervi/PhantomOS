@@ -15,7 +15,12 @@ namespace PhantomOS.ViewModels
     public class MainWindowViewModel : ViewModelBase
     {
         private readonly OptimizationService _optimizationService;
-        private string _statusMessage = "Listo para optimizar";
+        private readonly HardwareService _hardwareService;
+        private readonly RecommendationService _recommendationService;
+        
+        private string _statusMessage = "Analizando sistema...";
+        private string _systemSpecsSummary = "Cargando especificaciones...";
+        private HardwareInfo? _currentHardware;
 
         public ObservableCollection<AtomicTweak> Tweaks { get; }
         public ObservableCollection<TweakProfile> Profiles { get; }
@@ -26,27 +31,58 @@ namespace PhantomOS.ViewModels
             set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
         }
 
+        public string SystemSpecsSummary
+        {
+            get => _systemSpecsSummary;
+            set => this.RaiseAndSetIfChanged(ref _systemSpecsSummary, value);
+        }
+
         public ReactiveCommand<Unit, Unit> ApplyCommand { get; }
+        public ReactiveCommand<Unit, Unit> SmartFixCommand { get; }
         public ReactiveCommand<TweakProfile, Unit> SelectProfileCommand { get; }
 
         public MainWindowViewModel()
         {
             _optimizationService = new OptimizationService();
+            _hardwareService = new HardwareService();
+            _recommendationService = new RecommendationService();
+
             Tweaks = new ObservableCollection<AtomicTweak>(TweakCatalog.Tweaks);
             Profiles = new ObservableCollection<TweakProfile>(TweakCatalog.Profiles);
 
             ApplyCommand = ReactiveCommand.CreateFromTask(ApplyChangesAsync);
+            SmartFixCommand = ReactiveCommand.CreateFromTask(ApplySmartFixAsync);
             SelectProfileCommand = ReactiveCommand.Create<TweakProfile>(SelectProfile);
 
-            // Check initial status
-            RefreshStatus();
+            // Trigger Automatic Hardware Scan
+            _ = Task.Run(RunHardwareScanAsync);
         }
 
-        private void RefreshStatus()
+        private async Task RunHardwareScanAsync()
         {
-            foreach (var tweak in Tweaks)
+            try
             {
-                _optimizationService.CheckTweakStatus(tweak);
+                _currentHardware = _hardwareService.GetSystemInfo();
+                SystemSpecsSummary = _currentHardware.DetailedSummary;
+                
+                // Get Recommendations
+                var recommendedIds = _recommendationService.GetRecommendedTweakIds(_currentHardware, Tweaks.ToList());
+                
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    foreach (var tweak in Tweaks)
+                    {
+                        tweak.IsRecommended = recommendedIds.Contains(tweak.Id);
+                        // Also check current real-world status
+                        _optimizationService.CheckTweakStatus(tweak);
+                    }
+                    StatusMessage = $"Análisis completado. Encontradas {recommendedIds.Count} recomendaciones para tu equipo.";
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Fallo en el escaneo automático inicial", ex);
+                StatusMessage = "Error al analizar el hardware.";
             }
         }
 
@@ -57,8 +93,19 @@ namespace PhantomOS.ViewModels
             {
                 tweak.IsApplied = profile.TweakIds.Contains(tweak.Id);
             }
-            // Note: In a real app we'd need to trigger UI update for IsApplied if not using a reactive property
-            // We'll fix this by making AtomicTweak reactive or manually refreshing
+        }
+
+        private async Task ApplySmartFixAsync()
+        {
+            StatusMessage = "Aplicando 'Smart Fix' recomendado para tu equipo...";
+            foreach (var tweak in Tweaks)
+            {
+                if (tweak.IsRecommended && tweak.Risk == RiskLevel.Safe)
+                {
+                    tweak.IsApplied = true;
+                }
+            }
+            await ApplyChangesAsync();
         }
 
         private async Task ApplyChangesAsync()
@@ -67,10 +114,8 @@ namespace PhantomOS.ViewModels
             
             await Task.Run(() =>
             {
-                // 1. Create System Restore Point
-                SystemRestoreManager.CreateRestorePoint("PhantomOS Optimization Session");
-
-                var toApply = Tweaks.ToList(); // Simplified: applying all that are "selected" in UI
+                SystemRestoreManager.CreateRestorePoint("PhantomOS Session");
+                var toApply = Tweaks.Where(t => t.IsApplied).ToList();
                 var appliedList = new List<AtomicTweak>();
 
                 foreach (var tweak in toApply)
@@ -82,15 +127,14 @@ namespace PhantomOS.ViewModels
                     }
                 }
 
-                // 2. Generate Report
                 if (appliedList.Any())
                 {
                     _optimizationService.GenerateReport(appliedList);
-                    StatusMessage = "Optimizaciones aplicadas. Reiniciando Explorer...";
+                    StatusMessage = "Optimizaciones completadas. Reiniciando Explorer...";
                     _optimizationService.RestartExplorer();
                 }
 
-                StatusMessage = "¡Optimización completada con éxito!";
+                StatusMessage = "¡Optimización inteligente completada!";
             });
         }
     }
